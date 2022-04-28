@@ -1,0 +1,27 @@
+---
+- hosts: all
+
+  tasks:
+    - name: Copy convert required repo
+      copy:
+        src: /rhel7isorpms/convert2rhel.repo
+        dest: /etc/yum.repos.d/convert2rhel.repo
+    - name: Install convert2rhel
+      yum:
+        name: convert2rhel
+        state: present
+    - name: Start to convert CentOS to RHEL
+      shell: convert2rhel --disable-submgr --disablerepo "*" --enablerepo rhel7u9 -y --no-rpm-va --restart
+      async: 1200
+      poll: 10
+      register: result
+      ignore_errors: true
+    - name: Reboot the machine (Wait for 5 min)
+      reboot:
+        reboot_timeout: 30
+    - name: Wait for the reboot to complete if there was a change.
+      wait_for_connection:
+        connect_timeout: 20
+        sleep: 5
+        delay: 5
+        timeout: 300
