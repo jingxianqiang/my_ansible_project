@@ -1,0 +1,11 @@
+---
+- hosts: all
+
+  tasks:
+    - name: Start fix risk on RHEL
+      shell: oscap xccdf eval --remediate --profile xccdf_org.ssgproject.content_profile_anssi_nt28_minimal --results /tmp/risk-result.xml --report /tmp/risk-report.html /usr/share/xml/scap/ssg/content/ssg-rhel7-ds.xml 
+      async: 120
+      poll: 10
+      register: result
+      ignore_errors: true
+
