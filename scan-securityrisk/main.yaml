@@ -1,0 +1,27 @@
+---
+- hosts: all
+
+  tasks:
+    - name: Install openscap-scanner
+      yum:
+        name: "{{ item.name }}"
+        state: present
+      with_items:
+        - { name: openscap-scanner }
+        - { name: scap-workbench }
+    - name: Start scan risk on RHEL
+      shell: oscap xccdf eval --profile xccdf_org.ssgproject.content_profile_anssi_nt28_minimal --results /tmp/risk-result.xml --report /tmp/risk-report.html /usr/share/xml/scap/ssg/content/ssg-rhel7-ds.xml 
+      async: 120
+      poll: 10
+      register: result
+      ignore_errors: true
+
+    - name: change result file permission
+      shell: chmod 777 /tmp/risk-report.html
+
+    - name: fetch openscap report
+      fetch:
+        src: /tmp/risk-report.html
+        dest: /var/www/html/openscap/
+        flat: yes
+
